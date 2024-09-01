@@ -39,7 +39,7 @@ contract Lattery {
         return players[_gameId].length;
     }
 
-    function getWinner(uint256 _gameId) public returns (address) {
+    function select(uint256 _gameId) public {
         uint256 length = players[_gameId].length;
         require(players[_gameId][length - 1] != address(0), "Cannot be yet started");
 
