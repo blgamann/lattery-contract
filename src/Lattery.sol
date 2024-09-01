@@ -7,6 +7,7 @@ contract Lattery {
     uint256 public gameId;
     mapping(uint256 => address[]) public players;
     mapping(uint256 => uint256) public stake;
+    mapping(uint256 => address) public winner;
 
     function create(uint256 numPlayers) public payable {
         require(numPlayers <= PARTICIPANTS_NUM, "Too many players");
@@ -36,5 +37,26 @@ contract Lattery {
 
     function getPlayersLength(uint256 _gameId) public view returns (uint256) {
         return players[_gameId].length;
+    }
+
+    function getWinner(uint256 _gameId) public returns (address) {
+        uint256 length = players[_gameId].length;
+        require(players[_gameId][length - 1] != address(0), "Cannot be yet started");
+
+        require(winner[_gameId] != address(0), "Winner is already selected");
+
+        uint256 rand = uint256(keccak256(abi.encodePacked(block.timestamp, _gameId))) % length;
+        winner[_gameId] = players[_gameId][rand];
+    }
+
+    function claim(uint256 _gameId) public payable {
+        require(msg.sender == winner[_gameId], "Not the winner");
+
+        address to = msg.sender;
+        uint256 amount = stake[_gameId];
+        require(amount > 0, "Amount must be greater than 0");
+
+        (bool success, ) = to.call{value: amount}("");
+        require(success, "Failed to send");
     }
 }
